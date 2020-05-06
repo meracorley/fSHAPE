@@ -82,8 +82,7 @@ done
 
 }
 
-cell="$1"
-file="$2" #if using processReadsPipelineMaster.sh to run all samples at once, sample name is provided as argument to this script
+file="$1" #use processReadsPipelineMaster.sh to run all samples at once
 
 echo "TRIMMING..."
 trim
