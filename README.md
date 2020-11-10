@@ -5,7 +5,7 @@
 wget https://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/hg38.fa.gz
 gunzip hg38.fa.gz
 #Outputs (.coverage files) to /coverage folders within folder for each sample.
-#Generate fSHAPE reactivity profiles for any region or transcript (expressed as BED regions) with python getReactivities.py -h
+#Generate fSHAPE reactivity profiles for any region or transcript (expressed as BED regions) with python bedReactivities.py -h
 
 #DEPENDENCIES:
 Bedtools

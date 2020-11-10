@@ -19,7 +19,8 @@ import pybedtools as bedtools
 global GENOME, DATAPATH
 
 tnxDict = {}
-genefile = open("gene2transcript.txt",'r')
+SCRIPTPATH = __file__.rstrip("bedReactivities.py")
+genefile = open("./"+SCRIPTPATH+"gene2transcript.txt",'r')
 genes = genefile.read().splitlines()
 genefile.close()
 for line in genes:
@@ -37,11 +38,13 @@ def usage():
         -i, --input     The input text file of regions in BED format. Requires strand information. BED regions with
                         the same name will be concat'd according to BED region sort and reactivities normalized together.
                         Useful for evaluating reactivites across a full transcript given BED regions of each exon.
+                        
+        -g, --genome    Path to the genome file (.fa) for the given data. Should match the genome reads were aligned to.
 
         OPTIONAL
         -s, --SeparateBeds    BED regions should be evaluated separately rather than combined based on common BED region name.
 
-        -p, --probing         Use structure probing data. Specify dataset: k562 | hepg2 | 293t | hela (default: k562)
+        -p, --probing         Specify probing dataset: k562 | hepg2 | 293t | hela (default: k562)
 
         -d, --datapath        Datapath to .cov files generated from fSHAPE sequencing data analysis. Default: "."
         ''')
@@ -140,16 +143,14 @@ def getCoverage(bedlines,prefixes): #given sorted matrix of bed regions
         covFiles.append(i+chrom+strand+".coverage") #chang icSHAPE
         if not os.path.isfile(covFiles[-1]):
             fileDNE = True
-        #covFiles.append(i+".dedup.sort.REF_"+chrom+strand+".coverage") #rons icSHAPE
     if fileDNE: #for the case of a chromosome that has no coverage file. e.g. weird chromosomes
-        return np.zeros((bedSum,2),dtype='int')+1,np.zeros((bedSum,2),dtype='int')
+        return np.zeros((bedSum,4),dtype='int')+1,np.zeros((bedSum,4),dtype='int')
     
     cov = cov_from_files(covFiles,bedPos,bedSum,chrom,1) #starting at a base coverage of 1 because later have to divide by overall coverage
 
     covFiles = [] #now get the 5' coverage
     for i in prefixes:
         covFiles.append(i+chrom+".5prime"+strand+".coverage") #chang icSHAPE
-        #covFiles.append(i+".dedup.sort.REF_"+chrom+".5prime"+strand+".coverage") #rons icSHAPE
     if strand=="-": #shifting given bedPos because the 5prime cov count at a given base should
         #actually be attributed to an RTstop at the base one upstream (+strand), or one
         #downstream (-strand). Instead of changing the coords in all the 5prime.cov files,
@@ -339,9 +340,10 @@ def combineCoverage(cov,cov5,relPos_in,beds_in,strand,sequence,USE_BED_NAME = Fa
             reactivities = normalizeSHAPEmain(regionCov[1:],regionCov5[1:]+0.,trimEnds=True)
             write_to_file(reactivities,name,".rx",-999) #last argurment tells write_to_file to not write if all values==1, for ex
             enoughdata = write_map_file(reactivities,name,regionSeq,-999)
-            if enoughdata:
-                write_to_file(regionCov[1:],name,".cov",1)
-                write_to_file(regionCov5[1:],name,".5cov",0)
+            ## uncomment to output coverages of	individual transcripts output in addition to map and rx	files
+            #if enoughdata:
+            #    write_to_file(regionCov[1:],name,".cov",1)
+            #    write_to_file(regionCov5[1:],name,".5cov",0)
     else: #simply write the cov of each bed region to individual file
         c = 0
         for region in relPos:
@@ -350,9 +352,10 @@ def combineCoverage(cov,cov5,relPos_in,beds_in,strand,sequence,USE_BED_NAME = Fa
             name = beds[c][0]+":"+beds[c][1]+"-"+beds[c][2]+beds[c][5] #chr:start-stop strand
             write_to_file(reactivities,name,".rx",-999)
             enoughdata = write_map_file(reactivities,name,regionSeq,-999)
-            if enoughdata:
-                write_to_file(cov[region[0]:region[1]],name,".cov",1)
-                write_to_file(cov5[region[0]:region[1]],name,".5cov",0)
+            ## uncomment to output coverages of	individual transcripts output in addition to map and rx	files
+            #if enoughdata:
+            #    write_to_file(cov[region[0]:region[1]],name,".cov",1)
+            #    write_to_file(cov5[region[0]:region[1]],name,".5cov",0)
             c+=1
      
     
