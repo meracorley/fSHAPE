@@ -19,7 +19,10 @@ Python3
 
 Python libraries: numpy, hmmlearn, joblib, sklearn, pybedtools
 
-## Download vitro/vivo icSHAPE struture probing reads from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149767
+## Download data 
+
+Download vitro/vivo icSHAPE struture probing reads from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149767
+
 Or use example reads included: K562_vitro_N1.ftl.fastq, K562_vitro_N2.ftl.fastq, K562_vivo_N1.ftl.fastq,K562_vivo_N2.ftl.fastq
 
 
@@ -40,7 +43,7 @@ See UMItools documentation for how to specify the UMI specific to your reads.
 
 With the example fastq files the pipeline would be run as:
 
-$ /bin/bash processReadsPipeline.sh -i K562_vitro_N1.ftl.fastq,K562_vitro_N2.ftl.fastq,K562_vivo_N2.ftl.fastq,K562_vivo_N1.ftl.fastq STAR_hg38/ -p 8 -l LOGFILE 
+$ /bin/bash processReadsPipeline.sh -i K562_vitro_N1.ftl.fastq,K562_vitro_N2.ftl.fastq,K562_vivo_N2.ftl.fastq,K562_vivo_N1.ftl.fastq -r STAR_hg38/ -p 8 -l LOGFILE 
 
 This calculates coverages across each chromosome for each input fastq file, which are output to sampleN/coverage/ . For example, for K562_vitro_N1.ftl its coverage files are output to ./K562_vitro_N1.ftl/coverage/
 For very large input fastq files, running a separate instance of processReadsPipeline.sh per sample will complete in a more reasonable amount of time.
