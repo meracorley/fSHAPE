@@ -2,7 +2,8 @@ import sys
 import numpy as np
 import math
 from hmmlearn import hmm
-from sklearn.externals import joblib
+#from sklearn.externals import joblib
+import joblib
 
 #import matplotlib
 #matplotlib.use('Agg')

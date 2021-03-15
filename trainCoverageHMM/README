@@ -1,0 +1,12 @@
+## coverageHMM.pkl was generated with hmmlearn.ipynb by training on read coverage data across several highly expressed RNAs.
+
+It is used in normalizaSHAPE.py to categorize regions into covered or not covered, for the purpose of dealing with the artifact of
+RT-stop based structure probing that mistakes some regions with no coverage as having no reactivity.
+i.e. no coverage should produce a reactivity value of NaN, not 0.
+
+Requires hmmlearn, joblib, and numpy packages
+
+Note: joblib is its own package, imported with the usual "import joblib", however, for scikit-learn<0.21 joblib is imported with "from sklearn.externals import joblib".
+
+It may be necessary to replace coverageHMM.pkl with coverageHMM_old.pkl if your sklearn is out of date, and to uncomment the line
+"from sklearn.externals import joblib" at the top of normalizeSHAPE.py and comment out "import joblib".

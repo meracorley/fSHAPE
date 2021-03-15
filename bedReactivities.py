@@ -20,7 +20,7 @@ global GENOME, DATAPATH
 
 tnxDict = {}
 SCRIPTPATH = __file__.rstrip("bedReactivities.py")
-genefile = open("./"+SCRIPTPATH+"gene2transcript.txt",'r')
+genefile = open(SCRIPTPATH+"gene2transcript.txt",'r')
 genes = genefile.read().splitlines()
 genefile.close()
 for line in genes:
@@ -35,19 +35,30 @@ def usage():
         -h, --help
 
         REQUIRED
-        -i, --input     The input text file of regions in BED format. Requires strand information. BED regions with
-                        the same name will be concat'd according to BED region sort and reactivities normalized together.
+        -i, --input     Regions to calculate fSHAPE reactivities for, in BED format. Requires strand information. 
+                        BED regions with the same name (FIELD 4) will be concat'd in sorted order and reactivities returned for the combined region.
                         Useful for evaluating reactivites across a full transcript given BED regions of each exon.
                         
         -g, --genome    Path to the genome file (.fa) for the given data. Should match the genome reads were aligned to.
 
+        -v, --invivo          Comma separated list of directory name of each in vivo sample (probed in presence of protein).
+                              Must accompany files specified by -t option.
+
+        -t, --invitro         Comma separated list of directory name of each in vitro sample (probed in absence of protein).
+                              Must accompany files specified by	-v option. Requires an equal number of invitro and invivo samples.
+
         OPTIONAL
-        -s, --SeparateBeds    BED regions should be evaluated separately rather than combined based on common BED region name.
+        -s, --separateBeds    BED regions should be evaluated separately rather than combined based on common BED region name.
 
-        -p, --probing         Specify probing dataset: k562 | hepg2 | 293t | hela (default: k562)
-
-        -d, --datapath        Datapath to .cov files generated from fSHAPE sequencing data analysis. Default: "."
         ''')
+
+## Legacy options for established datasets
+'''
+        -p, --probing         Specify one of the fSHAPE probing datasets downloadable from GSE149767: k562 | hepg2 | 293t | hela (default: k562)
+                              Overrides files specified with -v and -t.
+
+        -d, --datapath        For use with -p option only. Path to directory containing subdirectories for each samples prcocessed reads. Default "."
+'''
 
 def getAverage(reactivities): #return the average SHAPE reactivity of a region
     #print("getAverage")
@@ -359,23 +370,38 @@ def combineCoverage(cov,cov5,relPos_in,beds_in,strand,sequence,USE_BED_NAME = Fa
             c+=1
      
     
-def bedCoverageMain(bedfile,dataType="k562",USE_BED_NAME=True):
+def bedCoverageMain(bedfile,dataType="k562",USE_BED_NAME=True,VITRO_FILES="",VIVO_FILES=""):
+    ## For legacy datasets
     dataTypeDict = {"hepg2":["/HepG2_vitro_N2", "/HepG2_vitro_N1","/HepG2_vivo_N1","/HepG2_vivo_N2"], 
                     "k562":["/K562_vitro_N1","/K562_vitro_N2","/K562_vivo_N1","/K562_vivo_N2"],
                     "293t":["/vitro_rep1","/vitro_rep2","/vivo_rep1","/vivo_rep2"],
                     "hela":["/HeLa_vitro_N1","/HeLa_vitro_N2","/HeLa_vivo_N1","/HeLa_vivo_N2"]}
 
     filePrefixes = []
-
+    
+    ## For legacy datasets
     dataType = dataType.lower()
     if dataType in dataTypeDict:
-            treat1 = DATAPATH+dataTypeDict[dataType][0]+"/coverage/"
-            treat2 = DATAPATH+dataTypeDict[dataType][1]+"/coverage/"
-            neg1 = DATAPATH+dataTypeDict[dataType][2]+"/coverage/"
-            neg2 = DATAPATH+dataTypeDict[dataType][3]+"/coverage/"
-            filePrefixes = [neg1,neg2,treat1,treat2]
+        treat1 = DATAPATH+dataTypeDict[dataType][0]+"/coverage/"
+        treat2 = DATAPATH+dataTypeDict[dataType][1]+"/coverage/"
+        neg1 = DATAPATH+dataTypeDict[dataType][2]+"/coverage/"
+        neg2 = DATAPATH+dataTypeDict[dataType][3]+"/coverage/"
+        filePrefixes = [neg1,neg2,treat1,treat2]
+
+
+    elif len(VITRO_FILES)>0 and len(VITRO_FILES)==len(VIVO_FILES):
+        for file in VIVO_FILES:
+            if not os.path.isdir(file):
+                print("Cannot find directory to data", file)
+                sys.exit()
+            filePrefixes.append(file+"/")
+        for file in VITRO_FILES:
+            if not os.path.isdir(file):
+       	       	print("Cannot find directory to	data", file)
+       	       	sys.exit()
+            filePrefixes.append(file+"/")
     else:
-        print("Unknown dataset", dataType)
+        print("No paths to data coverage directories given, or number of in vivo/in vitro samples do not match.")
         usage()
         sys.exit()
     #print(treat1, neg1)
@@ -442,9 +468,11 @@ if __name__ == "__main__":
     #######Command line options
     INPUT = ""
     USE_BED_NAME = True
-    dataType="k562"
+    dataType=""
     DATAPATH = "."
     GENOMEFILE = 'hg38.fa'
+    VITRO_FILES = ""; VIVO_FILES=""
+
     argv = sys.argv[1:] #grabs all the arguments
     if len(argv)==0:
         usage()
@@ -452,7 +480,7 @@ if __name__ == "__main__":
     initialArgLen = len(argv)
     #print(argv)
     try:
-        opts, args = getopt.getopt(argv, "hi:sp:g:d:", ["help","input=", "separateBeds", "probing=","genome=","datapath="])
+        opts, args = getopt.getopt(argv, "hi:v:t:sg:", ["help","input=", "invivo=","invitro=", "separateBeds","genome="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -468,17 +496,17 @@ if __name__ == "__main__":
                 print("File "+ INPUT + " does not exist.")
                 sys.exit()
 
+        elif opt in ("-v", "--invivo"):
+            VIVO_FILES = arg.split(',')
+
+        elif opt in ("-t", "--invitro"):
+            VITRO_FILES = arg.split(',')
+       
         elif opt in ("-s", "--separateBeds"):
             USE_BED_NAME = False
 
         elif opt in ("-g", "--genome"):
             GENOMEFILE = arg
-
-        elif opt in ("-p", "--probing"):
-            dataType = arg
-
-        elif opt in ("-d", "--datapath"):
-            DATAPATH = arg
 
     if len(args)>0 and len(args)<initialArgLen:
         print("WARNING: Unused options", args)
@@ -502,6 +530,6 @@ if __name__ == "__main__":
     if len(bedlines)<1: #input was empty
         print("Input bed file is empty.")
         sys.exit()
-    bedCoverageMain(bed,dataType,USE_BED_NAME)
+    bedCoverageMain(bed,dataType,USE_BED_NAME,VITRO_FILES,VIVO_FILES)
 
     
