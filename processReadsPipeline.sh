@@ -122,7 +122,7 @@ REQUIRED
 OPTIONAL(has defaults)
    -h, --help      Print this help message.
    -a, --adapter   The adapter sequence that will be trimmed by CutAdapt. Default is AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG.
-   -u, --UMI       The UMI sequence pattern to be recognized by UMItools. Default is NNCCCCNNNNN.
+   -u, --UMI       The UMI sequence pattern to be recognized by UMItools. Default is NNNNCCCCNNNNN.
    -p, --threads   The number of threads to use during read aligning by STAR.
    -l, --log       Name of logfile that records completion status of major steps of pipeline. Path assumed to be current working directory.
 EOF
