@@ -361,11 +361,11 @@ def combineCoverage(cov,cov5,relPos_in,beds_in,strand,sequence,USE_BED_NAME = Fa
             regionSeq = sequence[region[0]:region[1]]
             reactivities = normalizeSHAPEmain(cov[region[0]:region[1]],cov5[region[0]:region[1]]+0.,trimEnds=False)
             name = beds[c][0]+":"+beds[c][1]+"-"+beds[c][2]+beds[c][5] #chr:start-stop strand
-            write_to_file(reactivities,name,".rx",-999)
+            #write_to_file(reactivities,name,".rx",-999)
             enoughdata = write_map_file(reactivities,name,regionSeq,-999)
             ## uncomment to output coverages of	individual transcripts output in addition to map and rx	files
-            #if enoughdata:
-            #    write_to_file(cov[region[0]:region[1]],name,".cov",1)
+            if enoughdata:
+                write_to_file(cov[region[0]:region[1]],name,".cov",1)
             #    write_to_file(cov5[region[0]:region[1]],name,".5cov",0)
             c+=1
      

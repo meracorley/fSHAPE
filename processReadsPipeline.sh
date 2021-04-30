@@ -45,11 +45,11 @@ for bam in *.bam; do
 samtools index "$bam" "$bam".bai
 name=$(echo $bam | sed 's/.bam//')
 loc=$(pwd)
-umi_tools dedup -I "$bam" --spliced-is-unique -S dedup/"$bam"
+umi_tools dedup -I "$bam" --spliced-is-unique --mapping-quality=3 -S dedup/"$name".sort.bam
 
 cd dedup ##make sorted deduped bam:
-samtools view -q 3 "$name".bam -o temp.bam #Filter to leave out reads with poor mapping quality.
-samtools sort temp.bam -o "$name".sort.bam
+#samtools view -q 3 "$name".bam -o temp.bam #Filter to leave out reads with poor mapping quality.
+#samtools sort temp.bam -o "$name".sort.bam
 samtools index "$name".sort.bam "$name".sort.bam.bai
 cd ../
 done
@@ -164,7 +164,7 @@ fi
 for S in $(echo $SAMPLES |  sed "s/,/ /g"); do
 if [[ ! -f "$S" ]]; then echo "Cannot find file $S. Please check filename/filepath."; exit ; fi
 
-file=$(echo $S | sed "s/.fastq/ /" | awk '{print$1}')
+file=$(echo $S | sed "s/.fastq/ /" | awk '{print$1}' | tr '/' '\t' | rev | cut -f1 | rev)
 cd $wd
 trim
 if [[ "$LOGFILE" != "" ]]; then
