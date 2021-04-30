@@ -1,11 +1,11 @@
 wd=$(pwd)
 
-module load star
-module load umitools
-module load samtools
-module load bamtools
-module load cutadapt
-module load bedtools
+#module load star
+#module load umitools
+#module load samtools
+#module load bamtools
+#module load cutadapt
+#module load bedtools
 
 trim() {
 if [ ${S: -3} == ".gz" ]; then
